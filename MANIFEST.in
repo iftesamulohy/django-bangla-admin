@@ -1,0 +1,9 @@
+include LICENSE
+include README.md
+recursive-include django_bangla_admin/static *
+recursive-include django_bangla_admin/templates *
+recursive-include django_bangla_admin/locale *
+global-exclude *.py[cod]
+global-exclude __pycache__
+prune example
+prune .venv

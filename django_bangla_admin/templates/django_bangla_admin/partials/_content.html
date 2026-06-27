@@ -1,0 +1,6 @@
+{% comment %}
+HTMX content-only partial. Used by HtmxAdminMixin-based views. For Django's own
+admin views, HtmxShellMiddleware strips the shell instead, so this is the
+fallback target for custom class-based views participating in SPA navigation.
+{% endcomment %}
+{% block content %}{% endblock %}

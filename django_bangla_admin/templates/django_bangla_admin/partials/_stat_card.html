@@ -1,0 +1,14 @@
+{% load ba_tags ba_i18n %}
+<div class="ba-card ba-stat">
+  <div class="ba-stat-top">
+    <div class="ba-stat-icon">{% ba_icon ctx.icon %}</div>
+    {% if ctx.trend %}
+      <span class="ba-trend {{ ctx.trend_dir }}">
+        {% if ctx.trend_dir == 'down' %}{% ba_icon 'trending-down' %}{% else %}{% ba_icon 'trending-up' %}{% endif %}
+        <span class="num">{{ ctx.trend }}</span>
+      </span>
+    {% endif %}
+  </div>
+  <div class="ba-stat-value num">{{ ctx.value|bn_number }}</div>
+  <div class="ba-stat-label">{% ba_label ctx.label %}</div>
+</div>

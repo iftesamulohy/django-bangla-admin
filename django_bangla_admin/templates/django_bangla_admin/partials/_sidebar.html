@@ -1,0 +1,28 @@
+{% load static ba_tags ba_i18n %}
+<aside class="ba-sidebar">
+  <div class="ba-brand">
+    {% if ba.site_logo %}
+      <img class="ba-brand-mark" src="{% static ba.site_logo %}" alt="">
+    {% else %}
+      <span class="ba-brand-mark">{{ ba.site_brand.en|default:ba.site_title|slice:":1"|upper }}</span>
+    {% endif %}
+    <span class="ba-brand-text">{% ba_label ba.site_brand %}</span>
+  </div>
+
+  <nav class="ba-nav">
+    {% for group in ba_menu %}
+      {% if group.section %}
+        <div class="ba-nav-section">{% ba_label group.section %}</div>
+      {% endif %}
+      {% for item in group.items %}
+        <a class="ba-nav-item{% ba_is_active item.url %}"
+           href="{{ item.url }}"
+           {% if ba.spa_navigation %}hx-get="{{ item.url }}" hx-target="#ba-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#ba-progress"{% endif %}>
+          {% ba_icon item.icon %}
+          <span class="ba-nav-label">{% ba_label item.label %}</span>
+          {% if item.badge %}<span class="ba-badge num">{{ item.badge|bn_number }}</span>{% endif %}
+        </a>
+      {% endfor %}
+    {% endfor %}
+  </nav>
+</aside>

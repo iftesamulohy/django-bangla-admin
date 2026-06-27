@@ -1,0 +1,21 @@
+{% load i18n ba_tags ba_i18n %}
+<div class="ba-card">
+  <div class="ba-card-head">{% ba_label ctx.title %}</div>
+  <div class="ba-card-body">
+    {% if ctx.items %}
+      <ul class="ba-feed">
+        {% for entry in ctx.items %}
+          <li>
+            <span class="ba-feed-dot">{% ba_icon "activity" %}</span>
+            <div class="ba-feed-main">
+              <div class="t">{{ entry }}</div>
+              {% if entry.user %}<div class="m">{{ entry.user }} · {{ entry.action_time|default:'' }}</div>{% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="m" style="color:var(--ba-faint)">{% translate "No recent activity." %}</p>
+    {% endif %}
+  </div>
+</div>

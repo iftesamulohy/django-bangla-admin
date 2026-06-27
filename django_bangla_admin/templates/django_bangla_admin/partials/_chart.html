@@ -1,0 +1,13 @@
+{% load ba_i18n %}
+<div class="ba-card">
+  <div class="ba-card-head">{% ba_label ctx.title %}</div>
+  <div class="ba-chart-body">
+    <div class="ba-chart-canvas-wrap">
+      <canvas id="ba-chart-{{ ctx.id }}"
+              data-ba-chart
+              data-kind="{{ ctx.kind }}"
+              {% if ctx.data_url %}data-url="{{ ctx.data_url }}"{% endif %}
+              {% if ctx.static_data %}data-chart-data='{{ ctx.static_data }}'{% endif %}></canvas>
+    </div>
+  </div>
+</div>

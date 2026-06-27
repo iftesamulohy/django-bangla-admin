@@ -1,0 +1,47 @@
+{% load i18n ba_tags ba_i18n %}
+<header class="ba-topbar">
+  {% if ba.sidebar_collapsible %}
+    <button class="ba-iconbtn ba-only-desktop" data-ba-action="toggle-collapse"
+            title="{% translate 'Collapse sidebar' %}" aria-label="{% translate 'Collapse sidebar' %}">
+      {% ba_icon "panel-left" %}
+    </button>
+  {% endif %}
+  <button class="ba-iconbtn ba-only-mobile" data-ba-action="toggle-drawer"
+          title="{% translate 'Menu' %}" aria-label="{% translate 'Menu' %}">
+    {% ba_icon "menu" %}
+  </button>
+
+  <label class="ba-search">
+    {% ba_icon "search" %}
+    <input type="search" placeholder="{% translate 'Search…' %}" aria-label="{% translate 'Search' %}">
+    <kbd>⌘K</kbd>
+  </label>
+
+  <div class="ba-spacer"></div>
+
+  {% if ba.allow_language_toggle %}
+    <div class="ba-segment" role="group" aria-label="{% translate 'Language' %}">
+      {% url 'bangla_admin:ba_set_language' as setlang_url %}
+      <a class="{% if ba_lang == 'bn' %}active{% endif %}"
+         hx-get="{{ setlang_url }}?lang=bn" hx-swap="none">বাং</a>
+      <a class="{% if ba_lang == 'en' %}active{% endif %}"
+         hx-get="{{ setlang_url }}?lang=en" hx-swap="none">EN</a>
+    </div>
+  {% endif %}
+
+  {% if ba.allow_theme_toggle %}
+    <button class="ba-iconbtn" data-ba-action="toggle-theme"
+            title="{% translate 'Toggle theme' %}" aria-label="{% translate 'Toggle theme' %}">
+      <span data-theme-dark>{% ba_icon "moon" %}</span>
+    </button>
+  {% endif %}
+
+  <button class="ba-iconbtn" title="{% translate 'Notifications' %}" aria-label="{% translate 'Notifications' %}">
+    {% ba_icon "bell" %}
+  </button>
+
+  <a class="ba-iconbtn" href="{% url 'admin:logout' %}"
+     title="{% translate 'Log out' %}" aria-label="{% translate 'Log out' %}">
+    {% ba_icon "log-out" %}
+  </a>
+</header>

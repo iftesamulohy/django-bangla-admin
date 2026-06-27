@@ -1,0 +1,5 @@
+{% load i18n %}
+<nav class="ba-breadcrumbs" aria-label="{% translate 'Breadcrumbs' %}">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  {% block crumbs %}{% endblock %}
+</nav>

@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% load i18n ba_i18n %}
+
+{% block content_title %}
+  <h1>{% ba_label ba.welcome_sign %}</h1>
+{% endblock %}
+
+{% block content %}
+  <div class="ba-grid">
+    {% for w in widgets %}
+      <div class="{{ w.size }}">
+        {% include w.template with ctx=w.context %}
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

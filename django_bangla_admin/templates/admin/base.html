@@ -1,0 +1,63 @@
+{% load static i18n ba_tags ba_i18n %}<!DOCTYPE html>
+<html lang="{{ ba_lang|default:'bn' }}" data-ba-theme="{{ ba_theme|default:'dark' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ title }} | {{ ba.site_title|default:'Bangla Admin' }}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'django_bangla_admin/css/bangla-admin.css' %}">
+  {% block dark-mode-vars %}{% endblock %}
+  {% block extrastyle %}{% endblock %}
+  {% block extrahead %}{% endblock %}
+  <script src="{% static 'django_bangla_admin/vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'django_bangla_admin/vendor/chart.umd.js' %}" defer></script>
+  <script src="{% static 'django_bangla_admin/js/charts.js' %}" defer></script>
+  <script src="{% static 'django_bangla_admin/js/bangla-admin.js' %}" defer></script>
+  <script src="{% static 'django_bangla_admin/vendor/alpine.min.js' %}" defer></script>
+</head>
+<body class="{% block bodyclass %}{% endblock %}"
+      data-admin-utc-offset="{% now 'Z' %}"
+      hx-headers='{"X-Requested-With": "XMLHttpRequest"}'>
+<div id="ba-progress"></div>
+<div id="ba-toasts">{% block toasts %}{% endblock %}</div>
+
+{% if user.is_authenticated and user.is_staff %}
+<div class="ba-shell{% if not ba.navigation_expanded %} is-collapsed{% endif %}">
+  <div class="ba-backdrop" data-ba-action="close-drawer"></div>
+  {% block sidebar %}{% ba_menu %}{% endblock %}
+  <div class="ba-main">
+    {% block topbar %}{% include "django_bangla_admin/partials/_topbar.html" %}{% endblock %}
+    <main class="ba-content" id="ba-content">
+{% endif %}
+
+      <!--ba:content:start-->
+      {% if user.is_staff %}
+        {% block pretitle %}{% endblock %}
+        {% block breadcrumbs %}{% include "django_bangla_admin/partials/_breadcrumbs.html" %}{% endblock %}
+        {% if messages %}
+          <div id="ba-toasts" hx-swap-oob="beforeend">
+            {% for message in messages %}
+              <div class="ba-toast {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="ba-page-head">
+          {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
+          {% block content_subtitle %}{% endblock %}
+        </div>
+      {% endif %}
+
+      <div id="content" class="{% block coltype %}colM{% endblock %}">
+        {% block content %}{% endblock %}
+      </div>
+      <!--ba:content:end-->
+
+{% if user.is_authenticated and user.is_staff %}
+    </main>
+    {% block footer %}<footer class="ba-footer"></footer>{% endblock %}
+  </div>
+</div>
+{% endif %}
+
+{% block extrabody %}{% endblock %}
+</body>
+</html>
