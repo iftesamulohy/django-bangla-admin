@@ -96,4 +96,50 @@ BANGLA_ADMIN = {
         {"label": {"bn": "ব্যবহারকারী", "en": "Users"}, "icon": "users", "model": "auth.User"},
         {"label": {"bn": "গ্রুপ", "en": "Groups"}, "icon": "shield", "model": "auth.Group"},
     ],
+
+    # --- Declarative KPIs (ORM-driven, no Python) ---
+    "stat_cards": [
+        {"label": {"bn": "মোট অর্ডার", "en": "Total Orders"},
+         "model": "shop.Order", "aggregate": "count", "icon": "shopping-cart", "trend": "+9%"},
+        {"label": {"bn": "পরিশোধিত আয়", "en": "Paid Revenue"},
+         "model": "shop.Order", "aggregate": "sum", "field": "total",
+         "filters": {"status": "paid"}, "icon": "trending-up", "trend": "+14%"},
+        {"label": {"bn": "পণ্য", "en": "Products"},
+         "model": "shop.Product", "aggregate": "count", "icon": "package"},
+        {"label": {"bn": "সক্রিয় পণ্য", "en": "Active Products"},
+         "model": "shop.Product", "aggregate": "count",
+         "filters": {"is_active": True}, "icon": "tag", "trend": "+2%"},
+    ],
+
+    # --- Declarative charts (ORM-driven, no Python) ---
+    "charts": [
+        {
+            "id": "orders_by_status",
+            "kind": "doughnut",
+            "title": {"bn": "অর্ডার স্ট্যাটাস", "en": "Orders by Status"},
+            "model": "shop.Order",
+            "group_by": "status",          # field with choices -> labels resolved
+            "aggregate": "count",
+        },
+        {
+            "id": "revenue_by_month",
+            "kind": "bar",
+            "title": {"bn": "মাসিক আয় (পরিশোধিত)", "en": "Monthly Revenue (Paid)"},
+            "model": "shop.Order",
+            "group_by": "created_at",       # date field
+            "trunc": "month",              # day | week | month | year
+            "aggregate": "sum",
+            "field": "total",
+            "filters": {"status": "paid"},
+            "limit": 12,
+        },
+        {
+            "id": "products_per_category",
+            "kind": "bar",
+            "title": {"bn": "ক্যাটাগরি অনুযায়ী পণ্য", "en": "Products per Category"},
+            "model": "shop.Product",
+            "group_by": "category__name",  # follows relations with __
+            "aggregate": "count",
+        },
+    ],
 }

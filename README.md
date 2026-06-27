@@ -24,6 +24,7 @@
 - ⚡ **SPA feel, no JS framework** — HTMX partial navigation; the admin never full-reloads.
 - 🇧🇩 **First-class Bangla** — full Bn/En UI, instant cookie-based toggle, Bengali font stack, Bangla numerals (০১২৩).
 - 📊 **Live dashboard** — stat cards, line / doughnut / bar charts (Chart.js), activity feed; charts recolor on theme/lang change.
+- 🧩 **Charts & KPIs from settings** — declare *which model, which field/status, which aggregation, which chart type* in `BANGLA_ADMIN`; the ORM query runs for you. No Python needed. ([docs](#charts--kpis-from-settings-no-python))
 - 🌗 **Dark default + light mode** — persisted toggle; charts and components follow.
 - 📦 **Zero-build, offline-friendly** — prebuilt CSS, self-hosted fonts, vendored HTMX / Alpine / Chart.js. No CDN. Works on BDIX / offline VPS.
 
@@ -115,7 +116,83 @@ BANGLA_ADMIN = {
 
 Read values anywhere via `from django_bangla_admin.conf import ba_conf` → `ba_conf("theme")`.
 
-## Custom dashboards
+## Charts & KPIs from settings (no Python)
+
+You can build the whole dashboard **declaratively from `BANGLA_ADMIN`** — say
+which model, which field/status, how to aggregate, and which chart type. The
+package runs the ORM query for you. When you declare `charts` and/or
+`stat_cards`, they replace the built-in demo widgets.
+
+```python
+BANGLA_ADMIN = {
+    # KPI cards across the top
+    "stat_cards": [
+        {"label": {"bn": "মোট অর্ডার", "en": "Total Orders"},
+         "model": "shop.Order", "aggregate": "count", "icon": "shopping-cart", "trend": "+9%"},
+
+        {"label": {"bn": "পরিশোধিত আয়", "en": "Paid Revenue"},
+         "model": "shop.Order", "aggregate": "sum", "field": "total",
+         "filters": {"status": "paid"}, "icon": "trending-up"},
+    ],
+
+    # Charts
+    "charts": [
+        # Doughnut: count orders grouped by their status (choice labels resolved)
+        {"id": "orders_by_status", "kind": "doughnut",
+         "title": {"bn": "অর্ডার স্ট্যাটাস", "en": "Orders by Status"},
+         "model": "shop.Order", "group_by": "status", "aggregate": "count"},
+
+        # Bar: monthly paid revenue (date field truncated to month, sum of `total`)
+        {"id": "revenue_by_month", "kind": "bar",
+         "title": {"bn": "মাসিক আয়", "en": "Monthly Revenue"},
+         "model": "shop.Order", "group_by": "created_at", "trunc": "month",
+         "aggregate": "sum", "field": "total",
+         "filters": {"status": "paid"}, "limit": 12},
+
+        # Bar: products per category (follows the FK with `__`)
+        {"id": "products_per_category", "kind": "bar",
+         "title": {"bn": "ক্যাটাগরি অনুযায়ী পণ্য", "en": "Products per Category"},
+         "model": "shop.Product", "group_by": "category__name", "aggregate": "count"},
+    ],
+}
+```
+
+### Chart options
+
+| Key | Required | Description |
+|---|---|---|
+| `id` | ✅ | Unique id (used as the canvas id and `?chart=` key). |
+| `kind` | ✅ | `line` · `bar` · `doughnut` · `pie`. |
+| `title` | ✅ | String or `{"bn": ..., "en": ...}` dict. |
+| `model` | ✅ | `"app_label.ModelName"`. |
+| `group_by` | ✅ | Field to group by. Use `__` to follow relations (`category__name`). For a **date/datetime** field, add `trunc`. |
+| `aggregate` | ✅ | `count` · `sum` · `avg` · `min` · `max`. |
+| `field` |  | Field to aggregate. Required for everything except `count`. |
+| `trunc` |  | For date `group_by`: `day` · `week` · `month` · `year` (time-series buckets, ordered chronologically). |
+| `filters` |  | Dict of ORM filters applied first, e.g. `{"status": "paid", "is_active": True}`. Keys support lookups (`created_at__year`). |
+| `limit` |  | Keep the top *N* groups (or last *N* time buckets). |
+| `size` |  | Grid width class: `ba-col-12` · `ba-col-6` (default) · `ba-col-4` · `ba-col-3`. |
+
+### Stat-card options
+
+| Key | Required | Description |
+|---|---|---|
+| `label` | ✅ | String or `{"bn", "en"}` dict. |
+| `model` | ✅ | `"app_label.ModelName"`. |
+| `aggregate` | ✅ | `count` · `sum` · `avg` · `min` · `max`. |
+| `field` |  | Required for everything except `count`. |
+| `filters` |  | Dict of ORM filters. |
+| `icon` |  | Lucide icon name (e.g. `shopping-cart`, `users`, `package`). |
+| `trend` / `trend_dir` |  | Badge text (e.g. `"+9%"`) and direction (`up`/`down`). |
+
+> Group values are humanized automatically — fields with `choices` show their
+> display label, and Bangla numerals are applied to chart axes and KPI values
+> when the active language is Bangla. Decimal sums are returned as numbers.
+
+## Advanced: custom dashboards & metrics (Python)
+
+For anything the declarative API can't express, drop to Python. Subclass
+`Dashboard` and point `BANGLA_ADMIN["dashboard"]` at it:
 
 ```python
 from django_bangla_admin.dashboard import Dashboard, StatCard, ChartWidget, ListWidget
@@ -130,9 +207,18 @@ class MyDashboard(Dashboard):
     ]
 ```
 
-Point `BANGLA_ADMIN["dashboard"]` at it. Register custom chart metrics with
-`@register_metric("name")` from `django_bangla_admin.dashboard.data`, returning
-`{"labels": [...], "datasets": [...]}`.
+Register fully custom chart metrics with `@register_metric("name")` from
+`django_bangla_admin.dashboard.data`, returning `{"labels": [...], "datasets": [...]}`:
+
+```python
+from django_bangla_admin.dashboard.data import register_metric
+
+@register_metric("sales")
+def my_sales(request):
+    return {"labels": [...], "datasets": [{"label": "Sales", "data": [...]}]}
+```
+
+Then reference it from a `ChartWidget(data_url="bangla_admin:ba_chart_data", params={"metric": "sales"})`.
 
 ## Demo project
 

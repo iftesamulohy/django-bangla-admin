@@ -41,6 +41,14 @@ DEFAULTS = {
     # --- Dashboard ---
     "dashboard": "django_bangla_admin.dashboard.default.DefaultDashboard",
     "show_dashboard": True,
+    # Declarative, ORM-driven charts. When non-empty, these replace the default
+    # demo charts on the dashboard. See docs "Charts from settings".
+    # Each item: {id, kind, title, model, group_by, aggregate, field?, trunc?,
+    #             filters?, limit?, size?}
+    "charts": [],
+    # Declarative stat cards (KPIs). Each item:
+    # {label, model, aggregate, field?, filters?, icon?, trend?}
+    "stat_cards": [],
 
     # --- HTMX ---
     "spa_navigation": True,
