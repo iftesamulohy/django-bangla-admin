@@ -194,8 +194,8 @@ a { color: inherit; text-decoration: none; }
   color: var(--ba-muted);
 }
 
-/* ---- Sidebar tree (collapsible app -> model groups) -------------------- */
-.ba-nav-group { display: flex; flex-direction: column; }
+/* ---- Sidebar dropdown (app -> model groups, accordion style) ---------- */
+.ba-nav-group { display: flex; flex-direction: column; margin-bottom: 1px; }
 .ba-nav-parent {
   width: 100%;
   border: 0;
@@ -208,23 +208,32 @@ a { color: inherit; text-decoration: none; }
   display: inline-grid;
   place-items: center;
   color: var(--ba-faint);
-  transition: transform .18s ease;
+  transition: transform .22s cubic-bezier(.4, 0, .2, 1);
 }
 .ba-nav-chevron .ba-icon { width: 16px; height: 16px; }
+/* chevron-right (›) rotates to point down (⌄) when the dropdown is open */
 .ba-nav-group.is-open > .ba-nav-parent .ba-nav-chevron { transform: rotate(90deg); }
-.ba-nav-group.is-open > .ba-nav-parent { color: var(--ba-text); }
+.ba-nav-group.is-open > .ba-nav-parent { color: var(--ba-text); background: var(--ba-surface-2); }
 
-/* Children: animated collapse via max-height (works with N children). */
+/* Children: animated collapse via max-height + opacity (works with N items). */
 .ba-nav-children {
   overflow: hidden;
   max-height: 0;
-  margin-left: 16px;
-  padding-left: 8px;
-  border-left: 1px solid var(--ba-border-soft);
-  transition: max-height .24s ease;
+  opacity: 0;
+  padding-left: 14px;
+  transition: max-height .26s cubic-bezier(.4, 0, .2, 1), opacity .2s ease, padding .2s ease;
 }
-.ba-nav-group.is-open > .ba-nav-children { max-height: 1200px; }
-.ba-nav-child { font-size: 13px; padding: 7px 10px; }
+.ba-nav-group.is-open > .ba-nav-children {
+  max-height: 1200px;
+  opacity: 1;
+  padding: 2px 0 4px 14px;
+}
+.ba-nav-child {
+  font-size: 13px;
+  padding: 8px 10px;
+  margin: 1px 0;
+  position: relative;
+}
 .ba-nav-child .ba-icon { width: 17px; height: 17px; }
 .ba-nav-child.active::before { display: none; }
 .ba-nav-child.active {
@@ -339,11 +348,12 @@ a { color: inherit; text-decoration: none; }
 .ba-content {
   flex: 1;
   overflow-y: auto;
-  padding: 24px;
+  -webkit-overflow-scrolling: touch;
+  padding: clamp(14px, 2.6vw, 26px);
   position: relative;
 }
 .ba-page-head { margin-bottom: 22px; }
-.ba-page-head h1 { margin: 0 0 4px; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.ba-page-head h1 { margin: 0 0 4px; font-size: clamp(19px, 2.4vw, 24px); font-weight: 700; letter-spacing: -.01em; }
 .ba-breadcrumbs {
   font-size: 12px; color: var(--ba-faint);
   display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
@@ -445,33 +455,86 @@ a { color: inherit; text-decoration: none; }
 .ba-toast.error { border-left-color: var(--ba-danger); }
 .ba-toast.warning { border-left-color: var(--ba-warning); }
 
-/* ---- Mobile drawer ----------------------------------------------------- */
+/* ==========================================================================
+   Responsive — fluid across phones, tablets and desktops.
+   Breakpoints: 1024px (tablet / drawer), 768px (small tablet), 640px (phone).
+   ========================================================================== */
 .ba-backdrop { display: none; }
+.ba-only-mobile { display: none; }
+
+/* ---- <= 1024px: sidebar becomes an off-canvas drawer ------------------- */
 @media (max-width: 1024px) {
-  .ba-shell { grid-template-columns: 1fr; }
+  .ba-shell, .ba-shell.is-collapsed { grid-template-columns: 1fr; }
   .ba-sidebar {
     position: fixed; left: 0; top: 0; bottom: 0;
-    width: var(--ba-sidebar-w); z-index: 60;
-    transform: translateX(-100%); transition: transform .2s ease;
+    width: min(86vw, var(--ba-sidebar-w)); z-index: 60;
+    transform: translateX(-100%);
+    transition: transform .26s cubic-bezier(.4, 0, .2, 1);
+    box-shadow: var(--ba-shadow-lg);
   }
   .ba-shell.is-drawer-open .ba-sidebar { transform: translateX(0); }
   .ba-shell.is-drawer-open .ba-backdrop {
     display: block; position: fixed; inset: 0; z-index: 50;
     background: rgba(0, 0, 0, .5);
+    animation: ba-fade .2s ease;
   }
+  /* In the drawer the rail is always full width — never collapse children. */
+  .is-collapsed .ba-nav-label, .is-collapsed .ba-badge { display: inline; }
+  .is-collapsed .ba-nav-item { justify-content: flex-start; padding: 9px 12px; }
+  .is-collapsed .ba-nav-chevron { display: inline-grid; }
+  .is-collapsed .ba-brand-text { display: inline; }
+  .is-collapsed .ba-nav-section { text-align: left; font-size: 11px; padding: 16px 12px 6px; }
+  .is-collapsed .ba-nav-section::before { content: none; }
+  /* Restore inline (accordion) dropdown — undo the desktop hover flyout. */
+  .is-collapsed .ba-nav-children {
+    position: static; left: auto; top: auto; min-width: 0;
+    max-height: 0; opacity: 0; padding-left: 14px;
+    margin: 0; border: 0; border-radius: 0; background: transparent;
+    box-shadow: none; transform: none; pointer-events: auto; z-index: auto;
+  }
+  .is-collapsed .ba-nav-group.is-open > .ba-nav-children {
+    max-height: 1200px; opacity: 1; padding: 2px 0 4px 14px;
+  }
+  .is-collapsed .ba-nav-group:hover > .ba-nav-children { opacity: 0; }
+  .is-collapsed .ba-nav-group.is-open:hover > .ba-nav-children { opacity: 1; }
+
+  .ba-only-desktop { display: none; }
+  .ba-only-mobile { display: inline-grid; }
+
   .ba-col-3 { grid-column: span 6; }
   .ba-col-6 { grid-column: span 12; }
 }
+@keyframes ba-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---- <= 768px: tighten chrome, stack changelist filters ---------------- */
+@media (max-width: 768px) {
+  .ba-topbar { gap: 8px; padding: 0 12px; }
+  .ba-search { max-width: none; }
+  .ba-grid { gap: 14px; }
+  /* Filters drop below the results on small screens. */
+  #changelist-filter { flex: 1 1 100%; width: 100%; order: 2; }
+  .changelist-form-container { flex: 1 1 100%; }
+  /* Forms: labels stack above fields, inputs go full width. */
+  .form-row { display: flex; flex-direction: column; }
+  input[type="text"], input[type="number"], input[type="email"], input[type="url"],
+  input[type="password"], input[type="search"], textarea, select { max-width: 100%; }
+  .vTextField, .vLargeTextField, textarea { width: 100%; }
+}
+
+/* ---- <= 640px: phone layout ------------------------------------------- */
 @media (max-width: 640px) {
   .ba-col-3, .ba-col-6, .ba-col-4 { grid-column: span 12; }
   .ba-search { display: none; }
-}
-
-/* Hide the desktop sidebar toggle on mobile; show the hamburger instead. */
-.ba-only-mobile { display: none; }
-@media (max-width: 1024px) {
-  .ba-only-desktop { display: none; }
-  .ba-only-mobile { display: inline-grid; }
+  .ba-page-head h1 { font-size: 19px; }
+  /* Toolbars / object tools wrap and breathe. */
+  .object-tools { flex-wrap: wrap; }
+  #changelist-search { flex-wrap: wrap; }
+  #searchbar { flex: 1 1 100%; min-width: 0; }
+  .submit-row { gap: 8px; }
+  .submit-row input[type="submit"], .submit-row .button { flex: 1 1 auto; justify-content: center; }
+  /* Bigger touch targets on the rail. */
+  .ba-nav-item { padding: 11px 12px; }
+  .ba-iconbtn { width: 40px; height: 40px; }
 }
 
 /* ==========================================================================
@@ -514,25 +577,31 @@ input[type="submit"].default, .button.default {
 }
 #searchbar:focus { border-color: var(--ba-primary); box-shadow: 0 0 0 3px var(--ba-primary-tint); }
 
-/* Changelist layout: results + filter sidebar */
-#changelist { display: block; }
-.changelist-form-container { display: flex; flex-direction: column; }
+/* Changelist layout: results + filter sidebar (flex, wraps on mobile) */
+#changelist { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 18px; }
+.changelist-form-container { display: flex; flex-direction: column; flex: 1 1 420px; min-width: 0; }
 #changelist-filter {
-  float: right; width: 220px; margin-left: 18px;
+  flex: 0 0 220px; width: 220px;
   background: var(--ba-surface); border: 1px solid var(--ba-border);
   border-radius: var(--ba-radius); padding: 14px;
+  order: 2;
 }
 #changelist-filter h2, #changelist-filter h3 { font-size: 12px; color: var(--ba-muted); margin: 10px 0 6px; text-transform: uppercase; letter-spacing: .04em; }
 #changelist-filter ul { list-style: none; padding: 0; margin: 0 0 10px; }
 #changelist-filter li { padding: 3px 0; }
 #changelist-filter li.selected a { color: var(--ba-primary); font-weight: 600; }
 
-/* Results table */
-.results { overflow-x: auto; }
+/* Results table — wrapper scrolls horizontally on small screens */
+.results {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--ba-radius);
+}
 table { border-collapse: collapse; width: 100%; }
 #result_list {
   background: var(--ba-surface); border: 1px solid var(--ba-border);
   border-radius: var(--ba-radius); overflow: hidden;
+  min-width: 560px;
 }
 #result_list thead th {
   text-align: left; padding: 12px 14px; font-size: 12px; font-weight: 600;

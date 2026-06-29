@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.3.1
+
+### Changed
+- **Sidebar dropdown** reworked into a clean accordion: clicking an app
+  highlights its header and reveals model links indented beneath (no more
+  tree-line); identical behavior on desktop and inside the mobile drawer.
+- **Fully responsive** across phones, tablets and desktops: off-canvas drawer
+  with backdrop below 1024px, changelist filters that flex then stack,
+  horizontally-scrollable result tables on small screens, stacked form rows,
+  wrapping toolbars, larger touch targets, and fluid `clamp()` spacing —
+  with smoother transitions throughout.
+
+### Fixed
+- Changelist edit links are reliably highlighted in the primary color.
+- Desktop "collapsed rail" styles no longer leak into the mobile drawer.
+
 ## 0.3.0
 
 ### Added
