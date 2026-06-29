@@ -40,8 +40,11 @@
     {% ba_icon "bell" %}
   </button>
 
-  <a class="ba-iconbtn" href="{% url 'admin:logout' %}"
-     title="{% translate 'Log out' %}" aria-label="{% translate 'Log out' %}">
-    {% ba_icon "log-out" %}
-  </a>
+  <form class="ba-logout-form" method="post" action="{% url 'admin:logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="ba-iconbtn"
+            title="{% translate 'Log out' %}" aria-label="{% translate 'Log out' %}">
+      {% ba_icon "log-out" %}
+    </button>
+  </form>
 </header>

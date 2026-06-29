@@ -30,9 +30,19 @@ class MenuBuilderTests(TestCase):
     @override_settings(BANGLA_ADMIN={"menu": None})
     def test_auto_menu_from_registry(self):
         menu = build_menu(self._request(), site)
-        # Auth app should appear with User/Group models.
-        names = [s["section"] for s in menu]
-        self.assertTrue(any("auth" in str(n).lower() or "Auth" in str(n) for n in names))
+        # Auto mode returns a single unlabeled section whose items are
+        # collapsible app groups (each app -> model children).
+        self.assertEqual(len(menu), 1)
+        self.assertIsNone(menu[0]["section"])
+        apps = menu[0]["items"]
+        # Auth app should appear as a parent node with model children.
+        auth = next(
+            (a for a in apps if "auth" in str(a["label"]).lower()), None
+        )
+        self.assertIsNotNone(auth)
+        # Auth registers User + Group, so the parent must carry child links.
+        self.assertGreaterEqual(len(auth["children"]), 1)
+        self.assertTrue(all(c["url"] for c in auth["children"]))
 
     @override_settings(BANGLA_ADMIN={"show_sidebar": False})
     def test_hidden_sidebar_returns_empty(self):

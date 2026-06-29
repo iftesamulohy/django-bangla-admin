@@ -15,13 +15,36 @@
         <div class="ba-nav-section">{% ba_label group.section %}</div>
       {% endif %}
       {% for item in group.items %}
-        <a class="ba-nav-item{% ba_is_active item.url %}"
-           href="{{ item.url }}"
-           {% if ba.spa_navigation %}hx-get="{{ item.url }}" hx-target="#ba-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#ba-progress"{% endif %}>
-          {% ba_icon item.icon %}
-          <span class="ba-nav-label">{% ba_label item.label %}</span>
-          {% if item.badge %}<span class="ba-badge num">{{ item.badge|bn_number }}</span>{% endif %}
-        </a>
+        {% if item.children %}
+          <div class="ba-nav-group{% ba_tree_open item %}" data-ba-tree>
+            <button type="button" class="ba-nav-item ba-nav-parent" data-ba-action="toggle-tree"
+                    aria-expanded="false">
+              {% ba_icon item.icon %}
+              <span class="ba-nav-label">{% ba_label item.label %}</span>
+              {% if item.badge %}<span class="ba-badge num">{{ item.badge|bn_number }}</span>{% endif %}
+              <span class="ba-nav-chevron">{% ba_icon "chevron-right" %}</span>
+            </button>
+            <div class="ba-nav-children">
+              {% for child in item.children %}
+                <a class="ba-nav-item ba-nav-child{% ba_is_active child.url %}"
+                   href="{{ child.url }}"
+                   {% if ba.spa_navigation %}hx-get="{{ child.url }}" hx-target="#ba-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#ba-progress"{% endif %}>
+                  {% ba_icon child.icon %}
+                  <span class="ba-nav-label">{% ba_label child.label %}</span>
+                  {% if child.badge %}<span class="ba-badge num">{{ child.badge|bn_number }}</span>{% endif %}
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% else %}
+          <a class="ba-nav-item{% ba_is_active item.url %}"
+             href="{{ item.url }}"
+             {% if ba.spa_navigation %}hx-get="{{ item.url }}" hx-target="#ba-content" hx-swap="innerHTML" hx-push-url="true" hx-indicator="#ba-progress"{% endif %}>
+            {% ba_icon item.icon %}
+            <span class="ba-nav-label">{% ba_label item.label %}</span>
+            {% if item.badge %}<span class="ba-badge num">{{ item.badge|bn_number }}</span>{% endif %}
+          </a>
+        {% endif %}
       {% endfor %}
     {% endfor %}
   </nav>

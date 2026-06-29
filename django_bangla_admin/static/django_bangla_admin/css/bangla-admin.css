@@ -44,10 +44,14 @@
 
   --ba-sidebar-w: 264px;
   --ba-sidebar-w-collapsed: 72px;
-  --ba-topbar-h: 60px;
+  --ba-topbar-h: 62px;
+  --ba-radius-lg: 16px;
   --ba-radius: 12px;
   --ba-radius-sm: 8px;
-  --ba-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .18);
+  --ba-shadow-sm: 0 1px 2px rgba(0, 0, 0, .28);
+  --ba-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 30px rgba(0, 0, 0, .22);
+  --ba-shadow-lg: 0 12px 40px rgba(0, 0, 0, .38);
+  --ba-ring: 0 0 0 3px var(--ba-primary-tint);
 }
 
 /* ---- Tokens: LIGHT (overrides only) ----------------------------------- */
@@ -64,7 +68,9 @@
   --ba-text: #0D1117;
   --ba-muted: #5B6672;
   --ba-faint: #8893A0;
-  --ba-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 8px 24px rgba(16, 24, 40, .08);
+  --ba-shadow-sm: 0 1px 2px rgba(16, 24, 40, .06);
+  --ba-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 10px 30px rgba(16, 24, 40, .08);
+  --ba-shadow-lg: 0 16px 48px rgba(16, 24, 40, .14);
 }
 
 /* Bangla font stack when the document language is Bengali. */
@@ -85,6 +91,15 @@ body {
 a { color: inherit; text-decoration: none; }
 .num { font-family: var(--ba-font-en); font-variant-numeric: tabular-nums; }
 .ba-icon { flex: none; width: 20px; height: 20px; stroke-width: 2; }
+
+/* Thin, themed scrollbars */
+* { scrollbar-width: thin; scrollbar-color: var(--ba-border) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: var(--ba-border); border-radius: 999px;
+  border: 3px solid transparent; background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--ba-faint); background-clip: padding-box; }
 
 /* ---- App shell --------------------------------------------------------- */
 .ba-shell {
@@ -116,12 +131,13 @@ a { color: inherit; text-decoration: none; }
   white-space: nowrap;
 }
 .ba-brand .ba-brand-mark {
-  width: 30px; height: 30px; flex: none;
+  width: 32px; height: 32px; flex: none;
   display: grid; place-items: center;
   border-radius: 9px;
-  background: var(--ba-primary);
+  background: linear-gradient(135deg, var(--ba-primary), var(--ba-primary-700));
   color: #06201D;
   font-weight: 800;
+  box-shadow: 0 4px 12px var(--ba-primary-tint);
 }
 .is-collapsed .ba-brand-text { display: none; }
 
@@ -151,16 +167,19 @@ a { color: inherit; text-decoration: none; }
 }
 .ba-nav-item:hover { background: var(--ba-surface-2); color: var(--ba-text); }
 .ba-nav-item.active {
-  background: var(--ba-primary-tint);
-  color: var(--ba-text);
+  background: linear-gradient(90deg, var(--ba-primary-tint), transparent);
+  color: var(--ba-primary);
+  font-weight: 600;
 }
+.ba-nav-item.active .ba-icon { color: var(--ba-primary); }
 .ba-nav-item.active::before {
   content: "";
   position: absolute;
-  left: 0; top: 7px; bottom: 7px;
+  left: 0; top: 6px; bottom: 6px;
   width: 3px;
   border-radius: 0 3px 3px 0;
   background: var(--ba-primary);
+  box-shadow: 0 0 12px var(--ba-primary);
 }
 .ba-nav-item .ba-nav-label { flex: 1; }
 .is-collapsed .ba-nav-label, .is-collapsed .ba-badge { display: none; }
@@ -175,6 +194,73 @@ a { color: inherit; text-decoration: none; }
   color: var(--ba-muted);
 }
 
+/* ---- Sidebar tree (collapsible app -> model groups) -------------------- */
+.ba-nav-group { display: flex; flex-direction: column; }
+.ba-nav-parent {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ba-nav-chevron {
+  display: inline-grid;
+  place-items: center;
+  color: var(--ba-faint);
+  transition: transform .18s ease;
+}
+.ba-nav-chevron .ba-icon { width: 16px; height: 16px; }
+.ba-nav-group.is-open > .ba-nav-parent .ba-nav-chevron { transform: rotate(90deg); }
+.ba-nav-group.is-open > .ba-nav-parent { color: var(--ba-text); }
+
+/* Children: animated collapse via max-height (works with N children). */
+.ba-nav-children {
+  overflow: hidden;
+  max-height: 0;
+  margin-left: 16px;
+  padding-left: 8px;
+  border-left: 1px solid var(--ba-border-soft);
+  transition: max-height .24s ease;
+}
+.ba-nav-group.is-open > .ba-nav-children { max-height: 1200px; }
+.ba-nav-child { font-size: 13px; padding: 7px 10px; }
+.ba-nav-child .ba-icon { width: 17px; height: 17px; }
+.ba-nav-child.active::before { display: none; }
+.ba-nav-child.active {
+  background: var(--ba-primary-tint);
+  color: var(--ba-primary);
+  font-weight: 600;
+}
+
+/* Collapsed rail: hide chevron/labels, reveal children as a hover flyout. */
+.is-collapsed .ba-nav-chevron { display: none; }
+.is-collapsed .ba-nav-children {
+  position: absolute;
+  left: calc(var(--ba-sidebar-w-collapsed) - 8px);
+  top: 0;
+  max-height: none;
+  min-width: 200px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--ba-border);
+  border-radius: var(--ba-radius);
+  background: var(--ba-surface);
+  box-shadow: var(--ba-shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-6px);
+  transition: opacity .14s ease, transform .14s ease;
+  z-index: 70;
+}
+.is-collapsed .ba-nav-group { position: relative; }
+.is-collapsed .ba-nav-group:hover > .ba-nav-children {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.is-collapsed .ba-nav-children .ba-nav-label { display: inline; }
+
 /* ---- Main column ------------------------------------------------------- */
 .ba-main { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
@@ -185,7 +271,9 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 14px;
   padding: 0 20px;
-  background: var(--ba-surface);
+  background: color-mix(in srgb, var(--ba-surface) 80%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
   border-bottom: 1px solid var(--ba-border);
   position: sticky;
   top: 0;
@@ -203,6 +291,7 @@ a { color: inherit; text-decoration: none; }
   transition: background .12s, color .12s;
 }
 .ba-iconbtn:hover { background: var(--ba-surface-2); color: var(--ba-text); }
+.ba-logout-form { margin: 0; display: inline-flex; }
 
 .ba-search {
   flex: 1;
@@ -253,9 +342,13 @@ a { color: inherit; text-decoration: none; }
   padding: 24px;
   position: relative;
 }
-.ba-page-head { margin-bottom: 20px; }
-.ba-page-head h1 { margin: 0 0 4px; font-size: 22px; font-weight: 700; }
-.ba-breadcrumbs { font-size: 12px; color: var(--ba-faint); display: flex; gap: 6px; }
+.ba-page-head { margin-bottom: 22px; }
+.ba-page-head h1 { margin: 0 0 4px; font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.ba-breadcrumbs {
+  font-size: 12px; color: var(--ba-faint);
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.ba-breadcrumbs a { color: var(--ba-muted); transition: color .12s ease; }
 .ba-breadcrumbs a:hover { color: var(--ba-primary); }
 
 /* ---- Cards / surfaces -------------------------------------------------- */
@@ -263,7 +356,13 @@ a { color: inherit; text-decoration: none; }
   background: var(--ba-surface);
   border: 1px solid var(--ba-border);
   border-radius: var(--ba-radius);
+  box-shadow: var(--ba-shadow-sm);
+  transition: box-shadow .18s ease, border-color .18s ease, transform .18s ease;
+}
+.ba-stat.ba-card:hover {
   box-shadow: var(--ba-shadow);
+  border-color: var(--ba-border);
+  transform: translateY(-2px);
 }
 .ba-card-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -388,12 +487,22 @@ a { color: inherit; text-decoration: none; }
   background: var(--ba-surface-2); border: 1px solid var(--ba-border);
   color: var(--ba-text); font-weight: 600; font-size: 13px;
   font-family: inherit; cursor: pointer; text-decoration: none;
+  transition: background .12s ease, border-color .12s ease, box-shadow .12s ease, transform .06s ease;
 }
 .object-tools a.addlink, .submit-row input[type="submit"].default,
 input[type="submit"].default, .button.default {
-  background: var(--ba-primary); border-color: var(--ba-primary); color: #06201D;
+  background: linear-gradient(135deg, var(--ba-primary), var(--ba-primary-700));
+  border-color: var(--ba-primary); color: #06201D;
 }
-.object-tools a:hover, .button:hover, input[type="submit"]:hover { border-color: var(--ba-primary); }
+.object-tools a:hover, .button:hover, input[type="submit"]:hover, button[type="submit"]:hover {
+  border-color: var(--ba-primary); box-shadow: var(--ba-ring);
+}
+.object-tools a.addlink:hover, input[type="submit"].default:hover, .button.default:hover {
+  box-shadow: 0 6px 18px var(--ba-primary-tint); filter: brightness(1.04);
+}
+.object-tools a:active, .button:active, input[type="submit"]:active, button[type="submit"]:active {
+  transform: translateY(1px);
+}
 
 /* Toolbar / search */
 #toolbar, #changelist-search { margin-bottom: 16px; }
@@ -434,10 +543,43 @@ table { border-collapse: collapse; width: 100%; }
 #result_list tbody td, #result_list tbody th {
   padding: 11px 14px; border-bottom: 1px solid var(--ba-border-soft); font-weight: 400;
 }
+#result_list tbody tr { transition: background .12s ease; }
 #result_list tbody tr:hover { background: var(--ba-surface-2); }
 #result_list tbody tr.selected { background: var(--ba-primary-tint); }
 .row1, .row2 { background: transparent; }
 th.sorted, td.sorted { background: transparent; }
+
+/* Highlight clickable links that lead to an edit/change view. */
+#result_list tbody a {
+  color: var(--ba-primary);
+  font-weight: 600;
+  transition: color .12s ease;
+}
+#result_list tbody a:hover { color: var(--ba-primary-700); text-decoration: underline; }
+/* Don't recolor checkbox / action helper links. */
+#result_list tbody td.action-checkbox a { color: inherit; }
+
+/* Per-row action buttons (edit + delete) */
+.ba-actions-col { width: 1%; text-align: right; }
+.ba-row-actions { white-space: nowrap; text-align: right; }
+.ba-rowbtn {
+  display: inline-grid; place-items: center;
+  width: 32px; height: 32px; margin-left: 4px;
+  border-radius: var(--ba-radius-sm);
+  border: 1px solid var(--ba-border);
+  background: var(--ba-surface-2);
+  color: var(--ba-muted);
+  transition: background .12s ease, color .12s ease, border-color .12s ease;
+}
+.ba-rowbtn .ba-icon { width: 16px; height: 16px; }
+.ba-rowbtn-edit:hover {
+  color: var(--ba-primary); border-color: var(--ba-primary);
+  background: var(--ba-primary-tint);
+}
+.ba-rowbtn-delete:hover {
+  color: var(--ba-danger); border-color: var(--ba-danger);
+  background: rgba(248, 81, 73, .1);
+}
 
 /* Pagination */
 .paginator {

@@ -1,0 +1,50 @@
+{% load i18n ba_tags %}
+{% if result_hidden_fields %}
+<div class="hiddenfields">{# DIV for HTML validation #}
+{% for item in result_hidden_fields %}{{ item }}{% endfor %}
+</div>
+{% endif %}
+{% if ba_rows %}
+<div class="results">
+<table id="result_list">
+<thead>
+<tr>
+{% for header in result_headers %}
+<th scope="col"{{ header.class_attrib }}>
+   {% if header.sortable and header.sort_priority > 0 %}
+       <div class="sortoptions">
+         <a class="sortremove" href="{{ header.url_remove }}" title="{% translate 'Remove from sorting' %}"></a>
+         {% if num_sorted_fields > 1 %}<span class="sortpriority" title="{% blocktranslate with priority_number=header.sort_priority %}Sorting priority: {{ priority_number }}{% endblocktranslate %}">{{ header.sort_priority }}</span>{% endif %}
+         <a href="{{ header.url_toggle }}" class="toggle {{ header.ascending|yesno:'ascending,descending' }}" title="{% translate 'Toggle sorting' %}"></a>
+       </div>
+   {% endif %}
+   <div class="text">{% if header.sortable %}<a href="{{ header.url_primary }}">{{ header.text|capfirst }}</a>{% else %}<span>{{ header.text|capfirst }}</span>{% endif %}</div>
+   <div class="clear"></div>
+</th>{% endfor %}
+{% if ba_show_actions %}<th scope="col" class="ba-actions-col"><div class="text"><span>{% translate 'Actions' %}</span></div></th>{% endif %}
+</tr>
+</thead>
+<tbody>
+{% for row in ba_rows %}
+{% if row.form and row.form.non_field_errors %}
+    <tr><td colspan="{{ row.cells|length|add:1 }}">{{ row.form.non_field_errors }}</td></tr>
+{% endif %}
+<tr>{% for cell in row.cells %}{{ cell }}{% endfor %}
+{% if ba_show_actions %}
+  <td class="ba-row-actions">
+    {% if row.change_url %}
+      <a class="ba-rowbtn ba-rowbtn-edit" href="{{ row.change_url }}"
+         title="{% translate 'Edit' %}" aria-label="{% translate 'Edit' %}">{% ba_icon "square-pen" %}</a>
+    {% endif %}
+    {% if row.delete_url %}
+      <a class="ba-rowbtn ba-rowbtn-delete" href="{{ row.delete_url }}"
+         title="{% translate 'Delete' %}" aria-label="{% translate 'Delete' %}">{% ba_icon "trash-2" %}</a>
+    {% endif %}
+  </td>
+{% endif %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}

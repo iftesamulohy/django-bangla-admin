@@ -51,11 +51,31 @@
   /* ---- Active nav state on SPA swap ------------------------------------ */
   function syncActiveNav(url) {
     var path = url || window.location.pathname;
-    document.querySelectorAll(".ba-nav-item").forEach(function (a) {
+    document.querySelectorAll("a.ba-nav-item").forEach(function (a) {
       var href = a.getAttribute("href");
       if (!href || href === "#") return;
       var active = href === "/" ? path === "/" : path.indexOf(href) === 0;
       a.classList.toggle("active", active);
+      // Expand the parent tree group that owns the active child link.
+      if (active && a.classList.contains("ba-nav-child")) {
+        var group = a.closest("[data-ba-tree]");
+        if (group) group.classList.add("is-open");
+      }
+    });
+  }
+
+  /* ---- Sidebar tree (collapsible app -> model groups) ------------------ */
+  function toggleTree(btn) {
+    var group = btn.closest("[data-ba-tree]");
+    if (!group) return;
+    var open = group.classList.toggle("is-open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  // Reflect server-rendered open state onto aria-expanded at load.
+  function syncTreeAria() {
+    document.querySelectorAll("[data-ba-tree]").forEach(function (g) {
+      var btn = g.querySelector(".ba-nav-parent");
+      if (btn) btn.setAttribute("aria-expanded", g.classList.contains("is-open") ? "true" : "false");
     });
   }
 
@@ -68,6 +88,7 @@
     else if (action === "toggle-collapse") { e.preventDefault(); toggleCollapse(); }
     else if (action === "toggle-drawer") { e.preventDefault(); toggleDrawer(); }
     else if (action === "close-drawer") { e.preventDefault(); closeDrawer(); }
+    else if (action === "toggle-tree") { e.preventDefault(); toggleTree(t); }
   });
 
   /* ---- ⌘K / Ctrl-K focuses search -------------------------------------- */
@@ -91,6 +112,7 @@
       });
     }
     syncActiveNav();
+    syncTreeAria();
     if (window.BaCharts) window.BaCharts.initAll();
   });
 

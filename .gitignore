@@ -26,3 +26,6 @@ package-lock.json
 .idea/
 .vscode/
 .DS_Store
+
+# PyPI API token (never commit)
+.pypi_token

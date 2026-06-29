@@ -89,12 +89,17 @@ BANGLA_ADMIN = {
         {"section": {"bn": "প্রধান", "en": "Main"}},
         {"label": {"bn": "ড্যাশবোর্ড", "en": "Dashboard"},
          "icon": "layout-dashboard", "url": "bangla_admin:index"},
-        {"label": {"bn": "পণ্য", "en": "Products"}, "icon": "package", "model": "shop.Product"},
-        {"label": {"bn": "ক্যাটাগরি", "en": "Categories"}, "icon": "tag", "model": "shop.Category"},
-        {"label": {"bn": "অর্ডার", "en": "Orders"}, "icon": "shopping-cart", "model": "shop.Order"},
+        # Collapsible tree group: app -> model children.
+        {"label": {"bn": "শপ", "en": "Shop"}, "icon": "shopping-cart", "children": [
+            {"label": {"bn": "পণ্য", "en": "Products"}, "icon": "package", "model": "shop.Product"},
+            {"label": {"bn": "ক্যাটাগরি", "en": "Categories"}, "icon": "tag", "model": "shop.Category"},
+            {"label": {"bn": "অর্ডার", "en": "Orders"}, "icon": "shopping-cart", "model": "shop.Order"},
+        ]},
         {"section": {"bn": "সিস্টেম", "en": "System"}},
-        {"label": {"bn": "ব্যবহারকারী", "en": "Users"}, "icon": "users", "model": "auth.User"},
-        {"label": {"bn": "গ্রুপ", "en": "Groups"}, "icon": "shield", "model": "auth.Group"},
+        {"label": {"bn": "অ্যাকাউন্ট", "en": "Accounts"}, "icon": "shield", "children": [
+            {"label": {"bn": "ব্যবহারকারী", "en": "Users"}, "icon": "users", "model": "auth.User"},
+            {"label": {"bn": "গ্রুপ", "en": "Groups"}, "icon": "shield", "model": "auth.Group"},
+        ]},
     ],
 
     # --- Declarative KPIs (ORM-driven, no Python) ---
